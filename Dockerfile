@@ -5,11 +5,11 @@ FROM node:20-slim
 WORKDIR /usr/src/app
 
 # Install app dependencies
-# Copy package.json and package-lock.json first for better caching
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Copy app source
 COPY . .
