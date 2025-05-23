@@ -5,6 +5,7 @@ const compression = require('compression');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 const { logger } = require('./utils/logger');
+const path = require('path');
 
 // Import routes
 const routePlanningRoutes = require('./routes/routePlanning');
@@ -24,7 +25,7 @@ const devUrl = 'http://localhost:3000';
 if (isProd) {
   app.enable('trust proxy');
   app.use((req, res, next) => {
-    if (req.secure) {
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
       next();
     } else {
       res.redirect(301, `https://${req.headers.host}${req.url}`);
@@ -48,10 +49,11 @@ app.use(compression());
 app.use(express.json());
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
+// Serve static files for Swagger UI
+app.use('/api-docs', express.static(path.join(__dirname, 'public')));
+
 // Swagger UI configuration
 const swaggerUiOptions = {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: "Ship Management System API Documentation",
   swaggerOptions: {
     url: isProd ? `${prodUrl}/api-docs/swagger.json` : `${devUrl}/api-docs/swagger.json`,
@@ -63,25 +65,11 @@ const swaggerUiOptions = {
     defaultModelsExpandDepth: 1,
     defaultModelExpandDepth: 1,
     showExtensions: true,
-    showCommonExtensions: true,
-    syntaxHighlight: {
-      theme: 'monokai'
-    },
-    defaultModelRendering: 'model',
-    validatorUrl: null,
-    deepLinking: true,
-    presets: [
-      SwaggerUIBundle.presets.apis,
-      SwaggerUIBundle.SwaggerUIStandalonePreset
-    ],
-    plugins: [
-      SwaggerUIBundle.plugins.DownloadUrl
-    ],
-    layout: "StandaloneLayout"
+    showCommonExtensions: true
   }
 };
 
-// Serve Swagger specification with proper headers
+// Serve swagger.json
 app.get('/api-docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -107,8 +95,9 @@ app.get('/api-docs/swagger.json', (req, res) => {
   res.send(specs);
 });
 
-// API Documentation
-app.use('/api-docs', swaggerUi.serve, (req, res) => {
+// API Documentation route
+app.use(['/api-docs', '/'], swaggerUi.serve);
+app.get(['/api-docs', '/'], (req, res) => {
   let html = swaggerUi.generateHTML(swaggerSpecs, swaggerUiOptions);
   
   // Force production URL in production
@@ -120,9 +109,9 @@ app.use('/api-docs', swaggerUi.serve, (req, res) => {
   res.send(html);
 });
 
-// Root route - redirect to API docs
-app.get('/', (req, res) => {
-  res.redirect('/api-docs');
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
 // Routes
@@ -139,6 +128,11 @@ app.options('*', cors(corsOptions));
 app.use((err, req, res, next) => {
   logger.error(err.stack);
   res.status(500).json({ error: err.message });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
 });
 
 module.exports = app; 

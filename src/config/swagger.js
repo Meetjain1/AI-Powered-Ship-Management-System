@@ -228,4 +228,7 @@ if (isProd) {
   specs.schemes = ['https'];
 }
 
+// Add basePath for proper routing
+specs.basePath = '/api/v1';
+
 module.exports = specs; 
