@@ -23,6 +23,7 @@ const options = {
         bearerAuth: []
       }
     ],
+    schemes: ['https', 'http'],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -183,6 +184,25 @@ const options = {
   apis: ['./src/routes/*.js'],
 };
 
+// Override the server URL if we're in production
+if (process.env.NODE_ENV === 'production') {
+  options.definition.schemes = ['https'];
+}
+
 const specs = swaggerJsdoc(options);
+
+// Ensure all URLs in production use HTTPS
+if (process.env.NODE_ENV === 'production') {
+  const replaceHttpWithHttps = (obj) => {
+    for (let key in obj) {
+      if (typeof obj[key] === 'string' && obj[key].startsWith('http://')) {
+        obj[key] = obj[key].replace('http://', 'https://');
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        replaceHttpWithHttps(obj[key]);
+      }
+    }
+  };
+  replaceHttpWithHttps(specs);
+}
 
 module.exports = specs; 

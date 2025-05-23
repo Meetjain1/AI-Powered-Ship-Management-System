@@ -16,6 +16,17 @@ const healthRouter = require('./routes/health');
 // Create Express app
 const app = express();
 
+// Force HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+    } else {
+      next();
+    }
+  });
+}
+
 // CORS configuration
 const corsOptions = {
   origin: '*', // Allow all origins
@@ -35,7 +46,20 @@ app.use(morgan('combined', { stream: { write: message => logger.info(message.tri
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Ship Management System API Documentation"
+  customSiteTitle: "Ship Management System API Documentation",
+  swaggerOptions: {
+    url: process.env.NODE_ENV === 'production' 
+      ? 'https://ai-powered-ship-management-system.onrender.com/api-docs/swagger.json'
+      : '/api-docs/swagger.json',
+    supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
+    defaultModelsExpandDepth: 3,
+    defaultModelExpandDepth: 3,
+    docExpansion: 'list',
+    tryItOutEnabled: true,
+    displayRequestDuration: true,
+    filter: true,
+    schemes: process.env.NODE_ENV === 'production' ? ['https'] : ['http', 'https']
+  }
 }));
 
 // Root route - redirect to API docs
