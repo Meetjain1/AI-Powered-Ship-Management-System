@@ -46,21 +46,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-// Start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    
-    // Try to find an available port
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-      logger.info(`Server is running on port ${port}`);
-      logger.info(`API Documentation available at http://localhost:${port}/api-docs`);
-    });
-  } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
+// Get port from environment variable
+const port = process.env.PORT || 3000;
 
-startServer(); 
+// Connect to MongoDB
+connectDB();
+
+// Start the server
+app.listen(port, () => {
+  logger.info(`Server is running on port ${port}`);
+  logger.info(`API Documentation available at ${process.env.NODE_ENV === 'production' 
+    ? 'https://ai-powered-ship-management-system.onrender.com/api-docs'
+    : `http://localhost:${port}/api-docs`}`);
+}); 

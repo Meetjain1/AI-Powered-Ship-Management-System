@@ -10,8 +10,10 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server',
+        url: process.env.NODE_ENV === 'production' 
+          ? 'https://ai-powered-ship-management-system.onrender.com'
+          : 'http://localhost:3000',
+        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
       },
     ],
     components: {
@@ -19,7 +21,7 @@ const options = {
         Ship: {
           type: 'object',
           properties: {
-            _id: { type: 'string', format: 'uuid' },
+            _id: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' },
             name: { type: 'string' },
             type: { type: 'string', enum: ['CARGO', 'PASSENGER', 'TANKER'] },
             capacity: { type: 'number' },
