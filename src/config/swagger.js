@@ -52,8 +52,8 @@ const options = {
         Route: {
           type: 'object',
           properties: {
-            _id: { type: 'string', format: 'uuid' },
-            shipId: { type: 'string', format: 'uuid' },
+            _id: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' },
+            shipId: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' },
             departure: {
               type: 'object',
               properties: {
@@ -105,8 +105,8 @@ const options = {
         Maintenance: {
           type: 'object',
           properties: {
-            _id: { type: 'string', format: 'uuid' },
-            shipId: { type: 'string', format: 'uuid' },
+            _id: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' },
+            shipId: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' },
             type: { type: 'string', enum: ['ROUTINE', 'EMERGENCY', 'SCHEDULED'] },
             date: { type: 'string', format: 'date-time' },
             description: { type: 'string' },
