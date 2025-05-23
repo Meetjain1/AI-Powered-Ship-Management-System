@@ -1,8 +1,8 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
-const isProd = process.env.NODE_ENV === 'production';
+// Force production mode since we're deploying
+const isProd = true; // process.env.NODE_ENV === 'production';
 const prodUrl = 'https://ai-powered-ship-management-system.onrender.com';
-const devUrl = 'http://localhost:3000';
 
 // Base Swagger options
 const baseOptions = {
@@ -12,11 +12,18 @@ const baseOptions = {
     version: '1.0.0',
     description: 'API documentation for Ship Management System',
   },
+  servers: [
+    {
+      url: prodUrl,
+      description: 'Production server'
+    }
+  ],
   security: [
     {
       bearerAuth: []
     }
   ],
+  schemes: ['https'],
   components: {
     securitySchemes: {
       bearerAuth: {
@@ -175,60 +182,45 @@ const baseOptions = {
   },
 };
 
-// Create environment-specific options
+// Create Swagger options
 const options = {
-  definition: {
-    ...baseOptions,
-    servers: isProd 
-      ? [{ url: prodUrl, description: 'Production server' }]
-      : [{ url: devUrl, description: 'Development server' }],
-    schemes: isProd ? ['https'] : ['http']
-  },
+  definition: baseOptions,
   apis: ['./src/routes/*.js']
 };
 
 // Generate Swagger specification
 let specs = swaggerJsdoc(options);
 
-// Force production URL in production environment
-if (isProd) {
-  const forceProductionUrl = (obj) => {
-    if (Array.isArray(obj)) {
-      obj.forEach(item => forceProductionUrl(item));
-    } else if (typeof obj === 'object' && obj !== null) {
-      Object.keys(obj).forEach(key => {
-        if (typeof obj[key] === 'string') {
-          // Replace any localhost or http URLs
-          if (obj[key].includes('localhost:3000')) {
-            obj[key] = obj[key].replace('http://localhost:3000', prodUrl);
-          }
-          if (obj[key].startsWith('http://')) {
-            obj[key] = obj[key].replace('http://', 'https://');
-          }
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          forceProductionUrl(obj[key]);
+// Force production URL in all places
+const forceProductionUrl = (obj) => {
+  if (Array.isArray(obj)) {
+    obj.forEach(item => forceProductionUrl(item));
+  } else if (typeof obj === 'object' && obj !== null) {
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'string') {
+        // Replace any localhost or http URLs
+        if (obj[key].includes('localhost:3000')) {
+          obj[key] = obj[key].replace('http://localhost:3000', prodUrl);
         }
-      });
-    }
-  };
+        if (obj[key].startsWith('http://')) {
+          obj[key] = obj[key].replace('http://', 'https://');
+        }
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        forceProductionUrl(obj[key]);
+      }
+    });
+  }
+};
 
-  // Apply URL replacements
-  forceProductionUrl(specs);
+// Apply URL replacements
+forceProductionUrl(specs);
 
-  // Ensure servers array is correct
-  specs.servers = [{
-    url: prodUrl,
-    description: 'Production server'
-  }];
-}
-
-// Add basePath and host for proper routing
-if (isProd) {
-  specs.host = 'ai-powered-ship-management-system.onrender.com';
-  specs.schemes = ['https'];
-} else {
-  specs.host = 'localhost:3000';
-  specs.schemes = ['http'];
-}
+// Ensure production settings
+specs.servers = [{
+  url: prodUrl,
+  description: 'Production server'
+}];
+specs.schemes = ['https'];
+specs.host = 'ai-powered-ship-management-system.onrender.com';
 
 module.exports = specs; 
