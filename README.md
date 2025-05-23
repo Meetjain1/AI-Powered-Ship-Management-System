@@ -2,7 +2,7 @@
 
 An intelligent ship management system that optimizes route planning, predicts fuel consumption, and schedules maintenance using AI/ML techniques.
 
-## 🚢 Features
+## Features
 
 - **Intelligent Route Planning**: Optimizes routes based on historical data and weather conditions
 - **Fuel Consumption Prediction**: AI-powered fuel estimation considering load, route, and weather
@@ -11,7 +11,7 @@ An intelligent ship management system that optimizes route planning, predicts fu
 - **Secure API Access**: RESTful endpoints with JWT authentication
 - **Containerized Deployment**: Docker-ready with automated CI/CD via GitHub Actions
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: Node.js + Express.js
 - **Database**: MongoDB
@@ -30,7 +30,7 @@ An intelligent ship management system that optimizes route planning, predicts fu
 - Docker (for containerized deployment)
 - OpenWeather API key (for weather data)
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Clone the repository**
    ```bash
@@ -59,7 +59,7 @@ An intelligent ship management system that optimizes route planning, predicts fu
    npm test
    ```
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 1. **Build the image**
    ```bash
@@ -71,7 +71,7 @@ An intelligent ship management system that optimizes route planning, predicts fu
    docker-compose up -d
    ```
 
-## 📚 API Documentation
+## API Documentation
 
 ### Route Planning
 - `POST /api/v1/route-plan`
@@ -117,7 +117,7 @@ An intelligent ship management system that optimizes route planning, predicts fu
   }
   ```
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ```env
 NODE_ENV=development
@@ -127,7 +127,7 @@ JWT_SECRET=your_jwt_secret
 OPENWEATHER_API_KEY=your_api_key
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ship-management-system/
@@ -144,7 +144,7 @@ ship-management-system/
 └── docker/           # Docker configuration
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -157,7 +157,7 @@ npm test -- routes.test.js
 npm run test:coverage
 ```
 
-## 📈 AI Model Training
+## AI Model Training
 
 The system uses TensorFlow.js for:
 - Route optimization using historical journey data
@@ -166,24 +166,3 @@ The system uses TensorFlow.js for:
 
 Model training scripts are located in `src/ai/training/`.
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Authors
-
-- Your Name - Initial work
-
-## 🙏 Acknowledgments
-
-- OpenWeather API for weather data
-- TensorFlow.js team for ML capabilities
-- MongoDB team for database solutions 
