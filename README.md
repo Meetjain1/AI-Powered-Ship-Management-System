@@ -23,7 +23,7 @@ An intelligent ship management system that optimizes route planning, predicts fu
 - **CI/CD**: GitHub Actions
 - **Containerization**: Docker
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Node.js >= 18
 - MongoDB >= 6.0
