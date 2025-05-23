@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ship-management-system
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+    healthCheckPath: /api/v1/health
+    autoDeploy: true 
