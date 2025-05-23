@@ -23,6 +23,18 @@ An intelligent ship management system that optimizes route planning, predicts fu
 - **CI/CD**: GitHub Actions
 - **Containerization**: Docker
 
+Event Management System API (Deployed Links)
+
+1. API Documentation: [Ship-management-system-Docs](https://ai-powered-ship-management-system.onrender.com/api-docs/)
+   - Interactive Swagger documentation
+   - Test all API endpoints
+   - View request/response schemas
+
+2. Base API URL: [Ship-management-system-base](https://ai-powered-ship-management-system.onrender.com)
+   
+Note: The base URL will show "Cannot GET /" because it's an API server, not a website. 
+Please use the Swagger documentation (/docs) to explore and test the API.
+
 ## Prerequisites
 
 - Node.js >= 18
@@ -165,4 +177,3 @@ The system uses TensorFlow.js for:
 - Maintenance scheduling using usage patterns
 
 Model training scripts are located in `src/ai/training/`.
-
