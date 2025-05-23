@@ -60,9 +60,24 @@ const swaggerUiOptions = {
     tryItOutEnabled: true,
     docExpansion: 'list',
     filter: true,
+    defaultModelsExpandDepth: 1,
+    defaultModelExpandDepth: 1,
+    showExtensions: true,
+    showCommonExtensions: true,
     syntaxHighlight: {
       theme: 'monokai'
-    }
+    },
+    defaultModelRendering: 'model',
+    validatorUrl: null,
+    deepLinking: true,
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIBundle.SwaggerUIStandalonePreset
+    ],
+    plugins: [
+      SwaggerUIBundle.plugins.DownloadUrl
+    ],
+    layout: "StandaloneLayout"
   }
 };
 
@@ -71,19 +86,39 @@ app.get('/api-docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
   
-  // Ensure correct server URL based on environment
-  const specs = { ...swaggerSpecs };
+  // Create a copy of the specs
+  const specs = JSON.parse(JSON.stringify(swaggerSpecs));
+  
+  // Force production URL in production
   if (isProd) {
-    specs.servers = [{ url: prodUrl, description: 'Production server' }];
+    specs.servers = [{
+      url: prodUrl,
+      description: 'Production server'
+    }];
+    specs.schemes = ['https'];
   } else {
-    specs.servers = [{ url: devUrl, description: 'Development server' }];
+    specs.servers = [{
+      url: devUrl,
+      description: 'Development server'
+    }];
+    specs.schemes = ['http'];
   }
   
   res.send(specs);
 });
 
 // API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, swaggerUiOptions));
+app.use('/api-docs', swaggerUi.serve, (req, res) => {
+  let html = swaggerUi.generateHTML(swaggerSpecs, swaggerUiOptions);
+  
+  // Force production URL in production
+  if (isProd) {
+    html = html.replace(/http:\/\/localhost:3000/g, prodUrl);
+    html = html.replace(/http:/g, 'https:');
+  }
+  
+  res.send(html);
+});
 
 // Root route - redirect to API docs
 app.get('/', (req, res) => {
