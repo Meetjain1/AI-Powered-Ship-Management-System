@@ -18,6 +18,7 @@ const app = express();
 
 const isProd = process.env.NODE_ENV === 'production';
 const prodUrl = 'https://ai-powered-ship-management-system.onrender.com';
+const devUrl = 'http://localhost:3000';
 
 // Force HTTPS in production
 if (isProd) {
@@ -33,7 +34,7 @@ if (isProd) {
 
 // CORS configuration
 const corsOptions = {
-  origin: isProd ? [prodUrl, /\.onrender\.com$/] : 'http://localhost:3000',
+  origin: isProd ? [prodUrl, /\.onrender\.com$/] : true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -53,7 +54,7 @@ const swaggerUiOptions = {
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: "Ship Management System API Documentation",
   swaggerOptions: {
-    url: isProd ? `${prodUrl}/api-docs/swagger.json` : '/api-docs/swagger.json',
+    url: isProd ? `${prodUrl}/api-docs/swagger.json` : `${devUrl}/api-docs/swagger.json`,
     displayRequestDuration: true,
     persistAuthorization: true,
     tryItOutEnabled: true,
@@ -65,12 +66,23 @@ const swaggerUiOptions = {
   }
 };
 
-// API Documentation
+// Serve Swagger specification with proper headers
 app.get('/api-docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpecs);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  // Ensure correct server URL based on environment
+  const specs = { ...swaggerSpecs };
+  if (isProd) {
+    specs.servers = [{ url: prodUrl, description: 'Production server' }];
+  } else {
+    specs.servers = [{ url: devUrl, description: 'Development server' }];
+  }
+  
+  res.send(specs);
 });
 
+// API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, swaggerUiOptions));
 
 // Root route - redirect to API docs

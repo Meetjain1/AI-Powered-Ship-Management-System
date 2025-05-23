@@ -1,9 +1,8 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const isProd = process.env.NODE_ENV === 'production';
-const serverUrl = isProd
-  ? 'https://ai-powered-ship-management-system.onrender.com'
-  : 'http://localhost:3000';
+const prodUrl = 'https://ai-powered-ship-management-system.onrender.com';
+const devUrl = 'http://localhost:3000';
 
 const options = {
   definition: {
@@ -13,18 +12,25 @@ const options = {
       version: '1.0.0',
       description: 'API documentation for Ship Management System',
     },
-    servers: [
-      {
-        url: serverUrl,
-        description: isProd ? 'Production server' : 'Development server',
-      }
-    ],
+    servers: isProd 
+      ? [
+          {
+            url: prodUrl,
+            description: 'Production server'
+          }
+        ]
+      : [
+          {
+            url: devUrl,
+            description: 'Development server'
+          }
+        ],
     security: [
       {
         bearerAuth: []
       }
     ],
-    schemes: isProd ? ['https'] : ['http', 'https'],
+    schemes: isProd ? ['https'] : ['http'],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -187,7 +193,7 @@ const options = {
 
 const specs = swaggerJsdoc(options);
 
-// Ensure all URLs in production use HTTPS
+// Force HTTPS for all URLs in production
 if (isProd) {
   const replaceHttpWithHttps = (obj) => {
     if (Array.isArray(obj)) {
@@ -198,6 +204,10 @@ if (isProd) {
           if (obj[key].startsWith('http://')) {
             obj[key] = obj[key].replace('http://', 'https://');
           }
+          // Replace localhost with production URL
+          if (obj[key].includes('localhost:3000')) {
+            obj[key] = obj[key].replace('http://localhost:3000', prodUrl);
+          }
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
           replaceHttpWithHttps(obj[key]);
         }
@@ -205,6 +215,15 @@ if (isProd) {
     }
   };
   replaceHttpWithHttps(specs);
+
+  // Double-check servers array
+  if (specs.servers) {
+    specs.servers = specs.servers.map(server => ({
+      ...server,
+      url: prodUrl,
+      description: 'Production server'
+    }));
+  }
 }
 
 module.exports = specs; 
