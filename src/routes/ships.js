@@ -26,7 +26,7 @@ const { logger } = require('../utils/logger');
  *                 example: "Titanic"
  *               type:
  *                 type: string
- *                 enum: [CARGO, TANKER, PASSENGER, CONTAINER]
+ *                 enum: [CARGO, TANKER, PASSENGER]
  *                 example: "CARGO"
  *               capacity:
  *                 type: number
@@ -54,30 +54,29 @@ const { logger } = require('../utils/logger');
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  */
 router.post('/', [
   body('name').isString().trim().notEmpty(),
-  body('type').isIn(['CARGO', 'TANKER', 'PASSENGER', 'CONTAINER']),
+  body('type').isIn(['CARGO', 'TANKER', 'PASSENGER']),
   body('capacity').isFloat({ min: 0 }),
   body('fuelType').optional().isIn(['HFO', 'MGO', 'LNG'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ error: errors.array()[0].msg });
     }
 
-    const ship = await Ship.create(req.body);
+    const ship = await Ship.create({
+      ...req.body,
+      status: 'ACTIVE',
+      engineHours: 0
+    });
+
     res.status(201).json(ship);
   } catch (error) {
     logger.error('Ship creation error:', error);
-    if (error.code === 11000) { // Duplicate key error
+    if (error.code === 11000) {
       res.status(409).json({ error: 'Ship with this name already exists' });
     } else {
       res.status(500).json({ error: error.message });

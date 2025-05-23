@@ -1,5 +1,9 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
+const serverUrl = process.env.NODE_ENV === 'production'
+  ? 'https://ai-powered-ship-management-system.onrender.com'
+  : 'http://localhost:3000';
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -10,11 +14,9 @@ const options = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://ai-powered-ship-management-system.onrender.com'
-          : 'http://localhost:3000',
+        url: serverUrl,
         description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
-      },
+      }
     ],
     security: [
       {
@@ -32,12 +34,31 @@ const options = {
       schemas: {
         Ship: {
           type: 'object',
+          required: ['name', 'type', 'capacity'],
           properties: {
-            _id: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' },
-            name: { type: 'string' },
-            type: { type: 'string', enum: ['CARGO', 'PASSENGER', 'TANKER'] },
-            capacity: { type: 'number' },
-            fuelType: { type: 'string' },
+            _id: { 
+              type: 'string', 
+              pattern: '^[0-9a-fA-F]{24}$',
+              description: 'MongoDB ObjectId'
+            },
+            name: { 
+              type: 'string',
+              example: 'Titanic'
+            },
+            type: { 
+              type: 'string', 
+              enum: ['CARGO', 'PASSENGER', 'TANKER'],
+              example: 'CARGO'
+            },
+            capacity: { 
+              type: 'number',
+              example: 5000
+            },
+            fuelType: { 
+              type: 'string',
+              enum: ['HFO', 'MGO', 'LNG'],
+              example: 'HFO'
+            },
             currentLocation: {
               type: 'object',
               properties: {
@@ -49,8 +70,15 @@ const options = {
                 },
               },
             },
-            status: { type: 'string', enum: ['ACTIVE', 'MAINTENANCE', 'INACTIVE'] },
-            engineHours: { type: 'number' },
+            status: { 
+              type: 'string', 
+              enum: ['ACTIVE', 'MAINTENANCE', 'INACTIVE'],
+              default: 'ACTIVE'
+            },
+            engineHours: { 
+              type: 'number',
+              default: 0
+            },
             maintenanceHistory: { 
               type: 'array',
               items: { $ref: '#/components/schemas/Maintenance' }
@@ -152,7 +180,7 @@ const options = {
       },
     },
   },
-  apis: ['./src/routes/*.js'], // Path to the API routes
+  apis: ['./src/routes/*.js'],
 };
 
 const specs = swaggerJsdoc(options);
