@@ -56,16 +56,13 @@ app.use('/api-docs', express.static(path.join(__dirname, 'public')));
 const swaggerUiOptions = {
   customSiteTitle: "Ship Management System API Documentation",
   swaggerOptions: {
-    url: isProd ? `${prodUrl}/api-docs/swagger.json` : `${devUrl}/api-docs/swagger.json`,
-    displayRequestDuration: true,
     persistAuthorization: true,
-    tryItOutEnabled: true,
+    displayRequestDuration: true,
     docExpansion: 'list',
     filter: true,
-    defaultModelsExpandDepth: 1,
-    defaultModelExpandDepth: 1,
     showExtensions: true,
-    showCommonExtensions: true
+    showCommonExtensions: true,
+    tryItOutEnabled: true
   }
 };
 
@@ -77,7 +74,7 @@ app.get('/api-docs/swagger.json', (req, res) => {
   // Create a copy of the specs
   const specs = JSON.parse(JSON.stringify(swaggerSpecs));
   
-  // Force production URL in production
+  // Ensure correct server URL
   if (isProd) {
     specs.servers = [{
       url: prodUrl,
@@ -98,7 +95,19 @@ app.get('/api-docs/swagger.json', (req, res) => {
 // API Documentation route
 app.use(['/api-docs', '/'], swaggerUi.serve);
 app.get(['/api-docs', '/'], (req, res) => {
-  let html = swaggerUi.generateHTML(swaggerSpecs, swaggerUiOptions);
+  let html = swaggerUi.generateHTML(swaggerSpecs, {
+    ...swaggerUiOptions,
+    customJs: isProd ? `
+      window.onload = function() {
+        if (window.ui) {
+          window.ui.setServers([{
+            url: '${prodUrl}',
+            description: 'Production server'
+          }]);
+        }
+      };
+    ` : null
+  });
   
   // Force production URL in production
   if (isProd) {

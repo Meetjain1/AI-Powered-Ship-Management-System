@@ -179,12 +179,9 @@ const baseOptions = {
 const options = {
   definition: {
     ...baseOptions,
-    servers: [
-      {
-        url: isProd ? prodUrl : devUrl,
-        description: isProd ? 'Production server' : 'Development server'
-      }
-    ],
+    servers: isProd 
+      ? [{ url: prodUrl, description: 'Production server' }]
+      : [{ url: devUrl, description: 'Development server' }],
     schemes: isProd ? ['https'] : ['http']
   },
   apis: ['./src/routes/*.js']
@@ -218,17 +215,20 @@ if (isProd) {
   // Apply URL replacements
   forceProductionUrl(specs);
 
-  // Force production server
+  // Ensure servers array is correct
   specs.servers = [{
     url: prodUrl,
     description: 'Production server'
   }];
-
-  // Force HTTPS scheme
-  specs.schemes = ['https'];
 }
 
-// Add basePath for proper routing
-specs.basePath = '/api/v1';
+// Add basePath and host for proper routing
+if (isProd) {
+  specs.host = 'ai-powered-ship-management-system.onrender.com';
+  specs.schemes = ['https'];
+} else {
+  specs.host = 'localhost:3000';
+  specs.schemes = ['http'];
+}
 
 module.exports = specs; 
