@@ -1,6 +1,7 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
-const serverUrl = process.env.NODE_ENV === 'production'
+const isProd = process.env.NODE_ENV === 'production';
+const serverUrl = isProd
   ? 'https://ai-powered-ship-management-system.onrender.com'
   : 'http://localhost:3000';
 
@@ -15,7 +16,7 @@ const options = {
     servers: [
       {
         url: serverUrl,
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+        description: isProd ? 'Production server' : 'Development server',
       }
     ],
     security: [
@@ -23,7 +24,7 @@ const options = {
         bearerAuth: []
       }
     ],
-    schemes: ['https', 'http'],
+    schemes: isProd ? ['https'] : ['http', 'https'],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -184,22 +185,23 @@ const options = {
   apis: ['./src/routes/*.js'],
 };
 
-// Override the server URL if we're in production
-if (process.env.NODE_ENV === 'production') {
-  options.definition.schemes = ['https'];
-}
-
 const specs = swaggerJsdoc(options);
 
 // Ensure all URLs in production use HTTPS
-if (process.env.NODE_ENV === 'production') {
+if (isProd) {
   const replaceHttpWithHttps = (obj) => {
-    for (let key in obj) {
-      if (typeof obj[key] === 'string' && obj[key].startsWith('http://')) {
-        obj[key] = obj[key].replace('http://', 'https://');
-      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-        replaceHttpWithHttps(obj[key]);
-      }
+    if (Array.isArray(obj)) {
+      obj.forEach(item => replaceHttpWithHttps(item));
+    } else if (typeof obj === 'object' && obj !== null) {
+      Object.keys(obj).forEach(key => {
+        if (typeof obj[key] === 'string') {
+          if (obj[key].startsWith('http://')) {
+            obj[key] = obj[key].replace('http://', 'https://');
+          }
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          replaceHttpWithHttps(obj[key]);
+        }
+      });
     }
   };
   replaceHttpWithHttps(specs);

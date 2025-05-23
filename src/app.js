@@ -16,24 +16,29 @@ const healthRouter = require('./routes/health');
 // Create Express app
 const app = express();
 
+const isProd = process.env.NODE_ENV === 'production';
+const prodUrl = 'https://ai-powered-ship-management-system.onrender.com';
+
 // Force HTTPS in production
-if (process.env.NODE_ENV === 'production') {
+if (isProd) {
+  app.enable('trust proxy');
   app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https') {
-      res.redirect(`https://${req.header('host')}${req.url}`);
-    } else {
+    if (req.secure) {
       next();
+    } else {
+      res.redirect(301, `https://${req.headers.host}${req.url}`);
     }
   });
 }
 
 // CORS configuration
 const corsOptions = {
-  origin: '*', // Allow all origins
+  origin: isProd ? [prodUrl, /\.onrender\.com$/] : 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
 
 // Middleware
@@ -42,25 +47,31 @@ app.use(compression());
 app.use(express.json());
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
-// API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+// Swagger UI configuration
+const swaggerUiOptions = {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: "Ship Management System API Documentation",
   swaggerOptions: {
-    url: process.env.NODE_ENV === 'production' 
-      ? 'https://ai-powered-ship-management-system.onrender.com/api-docs/swagger.json'
-      : '/api-docs/swagger.json',
-    supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
-    defaultModelsExpandDepth: 3,
-    defaultModelExpandDepth: 3,
-    docExpansion: 'list',
-    tryItOutEnabled: true,
+    url: isProd ? `${prodUrl}/api-docs/swagger.json` : '/api-docs/swagger.json',
     displayRequestDuration: true,
+    persistAuthorization: true,
+    tryItOutEnabled: true,
+    docExpansion: 'list',
     filter: true,
-    schemes: process.env.NODE_ENV === 'production' ? ['https'] : ['http', 'https']
+    syntaxHighlight: {
+      theme: 'monokai'
+    }
   }
-}));
+};
+
+// API Documentation
+app.get('/api-docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpecs);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, swaggerUiOptions));
 
 // Root route - redirect to API docs
 app.get('/', (req, res) => {
